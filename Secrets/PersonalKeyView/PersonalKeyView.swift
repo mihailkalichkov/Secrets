@@ -7,9 +7,12 @@
 
 import SwiftUI
 
-struct PersonalKeyView: View {
-    @State private var myKey = CryptoService.shared.exportPublicKey()
-    
+@MainActor protocol PersonalKeyViewModelProtocol: ObservableObject {
+    var personalKey: String { get }
+}
+
+struct PersonalKeyView<ViewModel: PersonalKeyViewModelProtocol>: View {
+    @StateObject var viewModel: ViewModel
     @State private var showCode = false
     
     var body: some View {
@@ -25,13 +28,14 @@ struct PersonalKeyView: View {
             
             Button("Copy Key to Clipboard") {
                 showCode = true
-                UIPasteboard.general.string = myKey
+                UIPasteboard.general.string = viewModel.personalKey
             }
             
             if showCode {
-                Text(myKey)
+                Text(viewModel.personalKey)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .padding(.horizontal, 24)
             }
         }
     }

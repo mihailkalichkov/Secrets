@@ -13,9 +13,11 @@ enum CryptoServiceError: Error {
     case keyCorruption
 }
 
-class CryptoService {
-    static let shared = CryptoService()
-    
+protocol CryptoServiceProtocol {
+    func exportPublicKey() -> String
+}
+
+class CryptoService: CryptoServiceProtocol {
     func exportPublicKey() -> String {
         do {
             return try getMyPrivateKey().publicKey.rawRepresentation.base64EncodedString()

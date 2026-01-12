@@ -8,9 +8,11 @@
 import SwiftUI
 
 struct LandingView: View {
+    private let cryptoService = CryptoService()
+    
     var body: some View {
         TabView {
-            PersonalKeyView()
+            PersonalKeyView(viewModel: PersonalKeyViewModel(cryptoService: cryptoService))
         }
     }
 }
