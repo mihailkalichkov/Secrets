@@ -9,17 +9,20 @@ import SwiftUI
 
 struct LandingView: View {
     private let cryptoService = CryptoService()
-    // persist friends. Right now they erase on every startup
-    private var friends = [Friend]()
+    private let friendsService = FriendsService()
     
     var body: some View {
         TabView {
             PersonalKeyView(viewModel: PersonalKeyViewModel(cryptoService: cryptoService))
                 .tabItem { Label("My Key", systemImage: "key") }
             
-            ContactsView(viewModel: ContactsViewModel(friends: friends,
+            ContactsView(viewModel: ContactsViewModel(friendsService: friendsService,
                                                       cryptoService: cryptoService))
                 .tabItem { Label("Contacts", systemImage: "person.2") }
+            
+            DecryptView(viewModel: DecryptViewModel(friendsService: friendsService,
+                                                    cryptoService: cryptoService))
+                .tabItem { Label("Read", systemImage: "lock.open")  }
         }
     }
 }

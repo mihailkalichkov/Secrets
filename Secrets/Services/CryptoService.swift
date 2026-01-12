@@ -12,11 +12,13 @@ enum CryptoServiceError: Error {
     case errorCreatingTag
     case keyCorruption
     case encryptionFailed
+    case decryptionFailed
 }
 
 protocol CryptoServiceProtocol {
     func exportPublicKey() -> String
     func encrypt(message: String, publicKey: P256.KeyAgreement.PublicKey) throws -> String?
+    func decrypt(message: String, friendPublicKey: P256.KeyAgreement.PublicKey) throws -> String?
 }
 
 class CryptoService: CryptoServiceProtocol {
@@ -41,6 +43,19 @@ class CryptoService: CryptoServiceProtocol {
         catch {
             print("Encryption failed: \(error)")
             throw CryptoServiceError.encryptionFailed
+        }
+    }
+    
+    public func decrypt(message: String, friendPublicKey: P256.KeyAgreement.PublicKey) throws -> String? {
+        guard let data = Data(base64Encoded: message) else { return nil }
+        
+        do {
+            let key = try deriveSharedKey(from: friendPublicKey)
+            let sealedBox = try AES.GCM.SealedBox(combined: data)
+            let decryptedData = try AES.GCM.open(sealedBox, using: key)
+            return String(data: decryptedData, encoding: .utf8)
+        } catch {
+            throw CryptoServiceError.decryptionFailed
         }
     }
     
