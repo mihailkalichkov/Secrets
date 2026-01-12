@@ -17,7 +17,8 @@ struct LandingView: View {
             PersonalKeyView(viewModel: PersonalKeyViewModel(cryptoService: cryptoService))
                 .tabItem { Label("My Key", systemImage: "key") }
             
-            ContactsView(viewModel: ContactsViewModel(friends: friends))
+            ContactsView(viewModel: ContactsViewModel(friends: friends,
+                                                      cryptoService: cryptoService))
                 .tabItem { Label("Contacts", systemImage: "person.2") }
         }
     }

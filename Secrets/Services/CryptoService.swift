@@ -11,10 +11,12 @@ import CryptoKit
 enum CryptoServiceError: Error {
     case errorCreatingTag
     case keyCorruption
+    case encryptionFailed
 }
 
 protocol CryptoServiceProtocol {
     func exportPublicKey() -> String
+    func encrypt(message: String, publicKey: P256.KeyAgreement.PublicKey) throws -> String?
 }
 
 class CryptoService: CryptoServiceProtocol {
@@ -24,6 +26,21 @@ class CryptoService: CryptoServiceProtocol {
         } catch {
           print("Handle error properly")
           return ""
+        }
+    }
+    
+    public func encrypt(message: String, publicKey: P256.KeyAgreement.PublicKey) throws -> String? {
+        guard let data = message.data(using: .utf8) else { return nil }
+        
+        do {
+            let key = try deriveSharedKey(from: publicKey)
+            let sealedBox = try AES.GCM.seal(data, using: key)
+            
+            return sealedBox.combined?.base64EncodedString()
+        }
+        catch {
+            print("Encryption failed: \(error)")
+            throw CryptoServiceError.encryptionFailed
         }
     }
     
@@ -63,6 +80,17 @@ class CryptoService: CryptoServiceProtocol {
         SecItemAdd(storeQuery as CFDictionary, nil)
         
         return newKey
+    }
+    
+    private func deriveSharedKey(from friendsPublicKey: P256.KeyAgreement.PublicKey) throws -> SymmetricKey {
+        let myPrivateKey = try getMyPrivateKey()
+        let sharedSecret = try myPrivateKey.sharedSecretFromKeyAgreement(with: friendsPublicKey)
+        
+        // Add Salt for more security
+        return sharedSecret.hkdfDerivedSymmetricKey(using: SHA256.self,
+                                                    salt: Data(),
+                                                    sharedInfo: Data(),
+                                                    outputByteCount: 32)
     }
 }
 
