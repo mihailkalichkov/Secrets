@@ -13,6 +13,7 @@ struct LandingView: View {
     var body: some View {
         TabView {
             PersonalKeyView(viewModel: PersonalKeyViewModel(cryptoService: cryptoService))
+                .tabItem { Label("My Key", systemImage: "key") }
         }
     }
 }
